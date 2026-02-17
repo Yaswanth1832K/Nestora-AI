@@ -138,9 +138,19 @@ service cloud.firestore {
       allow read: if request.auth != null && 
                     request.auth.uid in resource.data.participants;
 
-      // Only the owner can update status
       allow update: if request.auth != null && 
                     request.auth.uid == resource.data.ownerId;
+    }
+
+    // ================= RENT PAYMENTS =================
+    match /rent_payments/{paymentId} {
+      // Tenant can read their own payments
+      allow read: if request.auth != null && 
+                    resource.data.tenantId == request.auth.uid;
+      
+      // Tenant can create a payment record
+      allow create: if request.auth != null && 
+                      request.resource.data.tenantId == request.auth.uid;
     }
   }
 }
