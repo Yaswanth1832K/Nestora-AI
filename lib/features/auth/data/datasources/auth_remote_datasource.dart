@@ -15,6 +15,7 @@ abstract interface class AuthRemoteDataSource {
     String? photoURL,
   });
   Future<void> updateUserRole(String uid, String newRole);
+  Future<void> updateFcmToken(String token);
 }
 
 class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
@@ -149,6 +150,18 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       }
       
       await user.reload(); // Refresh user data
+    }
+  }
+
+  @override
+  Future<void> updateFcmToken(String token) async {
+    try {
+      final user = _firebaseAuth.currentUser;
+      if (user == null) return;
+      await _firestore.collection('users').doc(user.uid).update({
+        'fcmToken': token,
+        'lastActive': FieldValue.serverTimestamp(),
+      });
     } catch (e) {
       throw ServerException(message: e.toString());
     }

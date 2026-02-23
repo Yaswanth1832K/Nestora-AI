@@ -144,11 +144,11 @@ class _ListingDetailsPageState extends ConsumerState<ListingDetailsPage> {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (context) => StatefulBuilder(
-        builder: (context, setModalState) => Padding(
+      backgroundColor: Colors.transparent, // Keeps the underlying screen slightly visible if needed
+      builder: (context) {
+        final isDark = Theme.of(context).brightness == Brightness.dark;
+        return GlassContainer.standard(
+          context: context,
           padding: EdgeInsets.only(
             bottom: MediaQuery.of(context).viewInsets.bottom,
             left: 24,
@@ -159,9 +159,9 @@ class _ListingDetailsPageState extends ConsumerState<ListingDetailsPage> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
+              Text(
                 'Write a Review',
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: isDark ? Colors.white : Colors.black87),
               ),
               const SizedBox(height: 16),
               Row(
@@ -169,7 +169,7 @@ class _ListingDetailsPageState extends ConsumerState<ListingDetailsPage> {
                 children: List.generate(5, (index) {
                   return IconButton(
                     icon: Icon(
-                      index < selectedRating ? Icons.star : Icons.star_border,
+                      index < selectedRating ? Icons.star_rounded : Icons.star_outline_rounded,
                       color: Colors.amber,
                       size: 32,
                     ),
@@ -182,7 +182,10 @@ class _ListingDetailsPageState extends ConsumerState<ListingDetailsPage> {
                 controller: commentController,
                 decoration: InputDecoration(
                   hintText: 'Share your experience...',
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                  hintStyle: TextStyle(color: isDark ? Colors.white38 : Colors.grey),
+                  filled: true,
+                  fillColor: isDark ? Colors.white.withOpacity(0.05) : Colors.grey.shade100,
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
                 ),
                 maxLines: 3,
               ),
@@ -191,10 +194,11 @@ class _ListingDetailsPageState extends ConsumerState<ListingDetailsPage> {
                 width: double.infinity,
                 child: ElevatedButton(
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.blue,
+                    backgroundColor: Theme.of(context).primaryColor,
                     foregroundColor: Colors.white,
                     padding: const EdgeInsets.symmetric(vertical: 16),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    elevation: 0,
                   ),
                   onPressed: () => _submitReview(selectedRating, commentController.text),
                   child: const Text('Submit Review', style: TextStyle(fontWeight: FontWeight.bold)),
@@ -203,8 +207,8 @@ class _ListingDetailsPageState extends ConsumerState<ListingDetailsPage> {
               const SizedBox(height: 24),
             ],
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 
@@ -267,162 +271,162 @@ class _ListingDetailsPageState extends ConsumerState<ListingDetailsPage> {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-      ),
+      backgroundColor: Colors.transparent,
       builder: (context) => StatefulBuilder(
-        builder: (context, setModalState) => Padding(
-          padding: EdgeInsets.only(
-            bottom: MediaQuery.of(context).viewInsets.bottom,
-            left: 24,
-            right: 24,
-            top: 24,
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text(
-                'Schedule a Visit',
-                style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 24),
-              
-              // Date Picker Trigger
-              ListTile(
-                contentPadding: EdgeInsets.zero,
-                leading: Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF1A1A1A),
-                    borderRadius: BorderRadius.circular(10),
+        builder: (context, setModalState) {
+          final isDark = Theme.of(context).brightness == Brightness.dark;
+          final colorScheme = Theme.of(context).colorScheme;
+          
+          return GlassContainer.standard(
+            context: context,
+            padding: EdgeInsets.only(
+              bottom: MediaQuery.of(context).viewInsets.bottom,
+              left: 24,
+              right: 24,
+              top: 24,
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Schedule a Visit',
+                  style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: isDark ? Colors.white : Colors.black87),
+                ),
+                const SizedBox(height: 24),
+                
+                // Date Picker Trigger
+                ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  leading: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: colorScheme.surfaceVariant.withOpacity(0.5),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Icon(Icons.calendar_today, color: colorScheme.primary),
                   ),
-                  child: const Icon(Icons.calendar_today, color: Colors.blueAccent),
-                ),
-                title: const Text('Select Date', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
-                subtitle: Text(
-                  DateFormat('EEEE, MMM dd, yyyy').format(selectedDate),
-                  style: const TextStyle(color: Colors.grey),
-                ),
-                trailing: const Icon(Icons.chevron_right, color: Colors.grey),
-                onTap: () async {
-                  final DateTime? picked = await showDatePicker(
-                    context: context,
-                    initialDate: selectedDate,
-                    firstDate: DateTime.now(),
-                    lastDate: DateTime.now().add(const Duration(days: 90)),
-                    builder: (context, child) {
-                      return Theme(
-                        data: Theme.of(context).copyWith(
-                          colorScheme: const ColorScheme.dark(
-                            primary: Colors.blueAccent,
-                            onPrimary: Colors.white,
-                            surface: Color(0xFF1A1A1A),
-                            onSurface: Colors.white,
+                  title: Text('Select Date', style: TextStyle(fontWeight: FontWeight.bold, color: isDark ? Colors.white : Colors.black87)),
+                  subtitle: Text(
+                    DateFormat('EEEE, MMM dd, yyyy').format(selectedDate),
+                    style: const TextStyle(color: Colors.grey),
+                  ),
+                  trailing: const Icon(Icons.chevron_right, color: Colors.grey),
+                  onTap: () async {
+                    final DateTime? picked = await showDatePicker(
+                      context: context,
+                      initialDate: selectedDate,
+                      firstDate: DateTime.now(),
+                      lastDate: DateTime.now().add(const Duration(days: 90)),
+                      builder: (context, child) {
+                        return Theme(
+                          data: Theme.of(context).copyWith(
+                            colorScheme: colorScheme.copyWith(
+                              primary: colorScheme.primary,
+                              surface: colorScheme.surface,
+                            ),
                           ),
-                        ),
-                        child: child!,
-                      );
-                    },
-                  );
-                  if (picked != null) {
-                    setModalState(() => selectedDate = picked);
-                  }
-                },
-              ),
-              const Divider(color: Color(0xFF2A2A2A)),
-              
-              // Time Picker Trigger
-              ListTile(
-                contentPadding: EdgeInsets.zero,
-                leading: Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF1A1A1A),
-                    borderRadius: BorderRadius.circular(10),
+                          child: child!,
+                        );
+                      },
+                    );
+                    if (picked != null) {
+                      setModalState(() => selectedDate = picked);
+                    }
+                  },
+                ),
+                Divider(color: colorScheme.outline.withOpacity(0.1)),
+                
+                // Time Picker Trigger
+                ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  leading: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: colorScheme.surfaceVariant.withOpacity(0.5),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Icon(Icons.access_time, color: colorScheme.primary),
                   ),
-                  child: const Icon(Icons.access_time, color: Colors.blueAccent),
-                ),
-                title: const Text('Select Time', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
-                subtitle: Text(
-                  selectedTime.format(context),
-                  style: const TextStyle(color: Colors.grey),
-                ),
-                trailing: const Icon(Icons.chevron_right, color: Colors.grey),
-                onTap: () async {
-                  final TimeOfDay? picked = await showTimePicker(
-                    context: context,
-                    initialTime: selectedTime,
-                    builder: (context, child) {
-                      return Theme(
-                        data: Theme.of(context).copyWith(
-                          colorScheme: const ColorScheme.dark(
-                            primary: Colors.blueAccent,
-                            onPrimary: Colors.white,
-                            surface: Color(0xFF1A1A1A),
-                            onSurface: Colors.white,
+                  title: Text('Select Time', style: TextStyle(fontWeight: FontWeight.bold, color: isDark ? Colors.white : Colors.black87)),
+                  subtitle: Text(
+                    selectedTime.format(context),
+                    style: const TextStyle(color: Colors.grey),
+                  ),
+                  trailing: const Icon(Icons.chevron_right, color: Colors.grey),
+                  onTap: () async {
+                    final TimeOfDay? picked = await showTimePicker(
+                      context: context,
+                      initialTime: selectedTime,
+                      builder: (context, child) {
+                        return Theme(
+                          data: Theme.of(context).copyWith(
+                            colorScheme: colorScheme.copyWith(
+                              primary: colorScheme.primary,
+                              surface: colorScheme.surface,
+                            ),
                           ),
-                        ),
-                        child: child!,
-                      );
-                    },
-                  );
-                  if (picked != null) {
-                    setModalState(() => selectedTime = picked);
-                  }
-                },
-              ),
-              const SizedBox(height: 24),
-              
-              const Text(
-                'Message (Optional)',
-                style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
-              ),
-              const SizedBox(height: 8),
-              Container(
-                decoration: BoxDecoration(
-                  color: const Color(0xFF1A1A1A),
-                  borderRadius: BorderRadius.circular(12),
+                          child: child!,
+                        );
+                      },
+                    );
+                    if (picked != null) {
+                      setModalState(() => selectedTime = picked);
+                    }
+                  },
                 ),
-                child: TextField(
-                  controller: messageController,
-                  maxLines: 3,
-                  style: const TextStyle(color: Colors.white),
-                  decoration: const InputDecoration(
-                    hintText: 'Any specific questions or requirements?',
-                    hintStyle: TextStyle(color: Colors.grey),
-                    border: InputBorder.none,
-                    contentPadding: EdgeInsets.all(16),
-                  ),
+                const SizedBox(height: 24),
+                
+                Text(
+                  'Message (Optional)',
+                  style: TextStyle(fontWeight: FontWeight.bold, color: isDark ? Colors.white : Colors.black87),
                 ),
-              ),
-              const SizedBox(height: 32),
-              
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.blue,
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                    elevation: 0,
+                const SizedBox(height: 8),
+                Container(
+                  decoration: BoxDecoration(
+                    color: colorScheme.surfaceVariant.withOpacity(0.35),
+                    borderRadius: BorderRadius.circular(12),
                   ),
-                  onPressed: () => _confirmVisit(
-                    selectedDate, 
-                    selectedTime, 
-                    messageController.text
-                  ),
-                  child: const Text(
-                    'Confirm Schedule',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  child: TextField(
+                    controller: messageController,
+                    maxLines: 3,
+                    style: TextStyle(color: isDark ? Colors.white : Colors.black87),
+                    decoration: InputDecoration(
+                      hintText: 'Any specific questions or requirements?',
+                      hintStyle: TextStyle(color: isDark ? Colors.white38 : Colors.grey),
+                      border: InputBorder.none,
+                      contentPadding: const EdgeInsets.all(16),
+                    ),
                   ),
                 ),
-              ),
-              const SizedBox(height: 32),
-            ],
-          ),
-        ),
+                const SizedBox(height: 32),
+                
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: colorScheme.primary,
+                      foregroundColor: colorScheme.onPrimary,
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                      elevation: 0,
+                    ),
+                    onPressed: () => _confirmVisit(
+                      selectedDate, 
+                      selectedTime, 
+                      messageController.text
+                    ),
+                    child: const Text(
+                      'Confirm Schedule',
+                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 32),
+              ],
+            ),
+          );
+        },
       ),
     );
   }
@@ -581,12 +585,13 @@ class _ListingDetailsPageState extends ConsumerState<ListingDetailsPage> {
   }
 
   Widget _buildTrustSafetyWarning(bool isDark, Color textColor) {
+    final colorScheme = Theme.of(context).colorScheme;
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: Colors.orange.shade50,
+        color: isDark ? Colors.orange.withOpacity(0.1) : Colors.orange.shade50,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.orange.shade200),
+        border: Border.all(color: Colors.orange.withOpacity(0.3)),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -599,16 +604,29 @@ class _ListingDetailsPageState extends ConsumerState<ListingDetailsPage> {
               children: [
                 Text(
                   'Trust & Safety',
-                  style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Colors.orange.shade900),
+                  style: TextStyle(
+                    fontSize: 15, 
+                    fontWeight: FontWeight.bold, 
+                    color: isDark ? Colors.orange.shade300 : Colors.orange.shade900
+                  ),
                 ),
                 const SizedBox(height: 4),
                 Text(
                   'This listing has been flagged for review. Avoid sharing contact details or making advance payments outside the app.',
-                  style: TextStyle(fontSize: 13, color: Colors.orange.shade900),
+                  style: TextStyle(
+                    fontSize: 13, 
+                    color: isDark ? Colors.orange.shade200.withOpacity(0.8) : Colors.orange.shade900
+                  ),
                 ),
                 if (widget.listing.fraudSignals?.isNotEmpty ?? false) ...[
                   const SizedBox(height: 6),
-                  ...(widget.listing.fraudSignals!.take(3).map((s) => Text('• $s', style: TextStyle(fontSize: 12, color: Colors.orange.shade800)))),
+                  ...(widget.listing.fraudSignals!.take(3).map((s) => Text(
+                    '• $s', 
+                    style: TextStyle(
+                      fontSize: 12, 
+                      color: isDark ? Colors.orange.shade200.withOpacity(0.6) : Colors.orange.shade800
+                    )
+                  ))),
                 ],
               ],
             ),
@@ -763,7 +781,7 @@ class _ListingDetailsPageState extends ConsumerState<ListingDetailsPage> {
                             decoration: BoxDecoration(
                               borderRadius: BorderRadius.circular(4),
                               color: _currentPage == index
-                                  ? Colors.blue
+                                  ? Theme.of(context).primaryColor
                                   : Colors.white.withOpacity(0.7),
                               boxShadow: [
                                 BoxShadow(
@@ -808,10 +826,10 @@ class _ListingDetailsPageState extends ConsumerState<ListingDetailsPage> {
                     children: [
                       Text(
                         '₹${widget.listing.price.toStringAsFixed(0)}',
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 28,
                           fontWeight: FontWeight.bold,
-                          color: Colors.green,
+                          color: Theme.of(context).colorScheme.primary,
                         ),
                       ),
                       if (predictedPrice != null)
@@ -1045,7 +1063,7 @@ class _ListingDetailsPageState extends ConsumerState<ListingDetailsPage> {
               children: [
                 Text(
                   '₹${widget.listing.price.toStringAsFixed(0)}',
-                  style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.blue),
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Theme.of(context).primaryColor),
                 ),
                 Text(
                   '/ month',
@@ -1063,7 +1081,7 @@ class _ListingDetailsPageState extends ConsumerState<ListingDetailsPage> {
                     width: double.infinity,
                     child: ElevatedButton(
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.blue,
+                        backgroundColor: Theme.of(context).primaryColor,
                         foregroundColor: Colors.white,
                         padding: const EdgeInsets.symmetric(vertical: 12),
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -1082,13 +1100,13 @@ class _ListingDetailsPageState extends ConsumerState<ListingDetailsPage> {
                     child: OutlinedButton(
                       style: OutlinedButton.styleFrom(
                         padding: const EdgeInsets.symmetric(vertical: 12),
-                        side: const BorderSide(color: Colors.blue),
+                        side: BorderSide(color: Theme.of(context).primaryColor),
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                       ),
                       onPressed: _scheduleVisit,
-                      child: const Text(
+                      child: Text(
                         'Schedule Visit',
-                        style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.blue),
+                        style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Theme.of(context).primaryColor),
                       ),
                     ),
                   ),
@@ -1119,9 +1137,9 @@ class _ListingDetailsPageState extends ConsumerState<ListingDetailsPage> {
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                       ),
                       onPressed: _showReviewModal,
-                      child: const Text(
+                      child: Text(
                         'Write a Review',
-                        style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.blue),
+                        style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Theme.of(context).primaryColor),
                       ),
                     ),
                   ),
@@ -1159,7 +1177,7 @@ class _ListingDetailsPageState extends ConsumerState<ListingDetailsPage> {
   Widget _buildInfoIcon(IconData icon, String label, Color textColor) {
     return Column(
       children: [
-        Icon(icon, size: 28, color: Colors.blue),
+        Icon(icon, size: 28, color: Theme.of(context).primaryColor),
         const SizedBox(height: 4),
         Text(label, style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: textColor)),
       ],

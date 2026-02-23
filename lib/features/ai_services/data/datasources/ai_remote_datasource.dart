@@ -15,6 +15,8 @@ abstract interface class AIRemoteDataSource {
     required int bedrooms,
     required int bathrooms,
   });
+
+  Future<String> getRecommendations(Map<String, dynamic> data);
 }
 
 class AIRemoteDataSourceImpl implements AIRemoteDataSource {
@@ -84,6 +86,31 @@ class AIRemoteDataSourceImpl implements AIRemoteDataSource {
       } else {
         throw ServerException(
           message: 'AI Price Prediction Error: ${response.statusCode} - ${response.body}',
+        );
+      }
+    } catch (e) {
+      throw ServerException(message: e.toString());
+    }
+  }
+
+  @override
+  Future<String> getRecommendations(Map<String, dynamic> data) async {
+    try {
+      final response = await _client.post(
+        Uri.parse('$_baseUrl${ApiConstants.recommendations}'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'user_preferences': data['preferences'],
+          'available_properties': data['properties'],
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        final decoded = jsonDecode(response.body) as Map<String, dynamic>;
+        return decoded['recommendations'] as String;
+      } else {
+        throw ServerException(
+          message: 'AI Recommendations Error: ${response.statusCode} - ${response.body}',
         );
       }
     } catch (e) {

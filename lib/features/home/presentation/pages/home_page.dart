@@ -8,15 +8,13 @@ import 'package:house_rental/core/router/app_router.dart';
 import 'package:go_router/go_router.dart';
 import 'package:house_rental/features/home/presentation/widgets/home_services_view.dart';
 import 'package:house_rental/features/listings/domain/entities/listing_entity.dart';
-
+import 'package:house_rental/core/widgets/shimmer_container.dart';
 import 'package:house_rental/features/roommate/presentation/pages/roommate_feed_screen.dart';
 
 // New specialized categories matching the requested UI
 final List<Map<String, dynamic>> categories = [
   {'name': 'Homes', 'icon': Icons.home_outlined, 'activeIcon': Icons.home, 'isNew': false},
   {'name': 'Roommates', 'icon': Icons.people_outline, 'activeIcon': Icons.people, 'isNew': false},
-  {'name': 'Experiences', 'icon': Icons.hot_tub_outlined, 'activeIcon': Icons.hot_tub, 'isNew': true},
-  {'name': 'Services', 'icon': Icons.room_service_outlined, 'activeIcon': Icons.room_service, 'isNew': true},
 ];
 
 class HomePage extends ConsumerStatefulWidget {
@@ -28,6 +26,7 @@ class HomePage extends ConsumerStatefulWidget {
 
 class _HomePageState extends ConsumerState<HomePage> {
   String _categoryFilter = 'Homes';
+  String _homeSubTab = 'Property Search'; // 'Property Search' or 'Home Services'
   final ScrollController _scrollController = ScrollController();
 
   @override
@@ -53,6 +52,52 @@ class _HomePageState extends ConsumerState<HomePage> {
     }
   }
 
+  Widget _buildSubTab(String title, IconData icon, bool isDark) {
+    final isSelected = _homeSubTab == title;
+    return Expanded(
+      child: GestureDetector(
+        onTap: () => setState(() => _homeSubTab = title),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            color: isSelected 
+              ? (title == 'Home Services' ? const Color(0xFF6E6EAF) : (isDark ? Colors.white : Colors.black)) 
+              : Colors.transparent,
+            borderRadius: BorderRadius.circular(20),
+            boxShadow: [
+              if (isSelected) 
+                BoxShadow(
+                  color: (title == 'Home Services' ? const Color(0xFF6E6EAF) : (isDark ? Colors.white : Colors.black)).withOpacity(0.3),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
+                ),
+            ],
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                icon, 
+                size: 16, 
+                color: isSelected ? Colors.white : (isDark ? Colors.white60 : Colors.black54),
+              ),
+              const SizedBox(width: 6),
+              Text(
+                title, 
+                style: TextStyle(
+                  fontWeight: FontWeight.bold, 
+                  fontSize: 12,
+                  color: isSelected ? Colors.white : (isDark ? Colors.white60 : Colors.black54),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final paginatedState = ref.watch(paginatedListingsProvider);
@@ -66,7 +111,7 @@ class _HomePageState extends ConsumerState<HomePage> {
           children: [
             // Pill-shaped Search Bar
             Padding(
-              padding: const EdgeInsets.fromLTRB(20, 16, 20, 12),
+              padding: const EdgeInsets.fromLTRB(20, 10, 20, 8),
               child: GestureDetector(
                 onTap: () => context.push(AppRouter.search),
                 child: Container(
@@ -104,7 +149,7 @@ class _HomePageState extends ConsumerState<HomePage> {
             
             // Categories Row
             Container(
-              height: 90,
+              height: 80,
               decoration: BoxDecoration(
                 border: Border(bottom: BorderSide(color: isDark ? Colors.grey.shade800 : Colors.grey.shade200)),
               ),
@@ -130,22 +175,17 @@ class _HomePageState extends ConsumerState<HomePage> {
                               size: 32,
                               color: isSelected ? (isDark ? Colors.white : Colors.black) : Colors.grey.shade500,
                             ),
-                            const SizedBox(height: 6),
-                            Text(
-                              category['name'] as String,
-                              style: TextStyle(
-                                color: isSelected ? (isDark ? Colors.white : Colors.black) : Colors.grey.shade500,
-                                fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-                                fontSize: 13,
+                             const SizedBox(height: 6),
+                            // Indicator dot/line
+                            if (isSelected)
+                              Container(
+                                height: 3,
+                                width: 24,
+                                decoration: BoxDecoration(
+                                  color: isSelected ? (isDark ? Colors.white : Colors.black) : Colors.transparent,
+                                  borderRadius: BorderRadius.circular(2),
+                                ),
                               ),
-                            ),
-                            const SizedBox(height: 8),
-                            // Indicator line
-                            Container(
-                              height: 2,
-                              width: 40,
-                              color: isSelected ? (isDark ? Colors.white : Colors.black) : Colors.transparent,
-                            ),
                           ],
                         ),
                         if (category['isNew'] == true)
@@ -174,13 +214,34 @@ class _HomePageState extends ConsumerState<HomePage> {
                 }).toList(),
               ),
             ),
+            
+            // Homes Sub-navigation (only when Homes is selected)
+            if (_categoryFilter == 'Homes')
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                child: Container(
+                  height: 44,
+                  padding: const EdgeInsets.all(4),
+                  decoration: BoxDecoration(
+                    color: isDark ? const Color(0xFF1E1E1E) : Colors.grey.shade100,
+                    borderRadius: BorderRadius.circular(22),
+                    border: Border.all(color: isDark ? Colors.grey.shade800 : Colors.grey.shade200),
+                  ),
+                  child: Row(
+                    children: [
+                      _buildSubTab('Property Search', Icons.home_work_outlined, isDark),
+                      _buildSubTab('Home Services', Icons.handyman_outlined, isDark),
+                    ],
+                  ),
+                ),
+              ),
 
             // Main Content Area
             Expanded(
-              child: _categoryFilter == 'Services'
-                  ? const HomeServicesView()
-                  : _categoryFilter == 'Roommates'
-                      ? const RoommateFeedScreen()
+              child: _categoryFilter == 'Roommates'
+                  ? const RoommateFeedScreen()
+                  : _categoryFilter == 'Homes' && _homeSubTab == 'Home Services'
+                      ? const HomeServicesView()
                       : _buildHomesFeed(paginatedState),
             ),
           ],
@@ -304,23 +365,19 @@ class _HomePageState extends ConsumerState<HomePage> {
     );
   }
 
+
   Widget _buildSkeletonFeed() {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final shimmerColor = isDark ? Colors.grey.shade800 : Colors.grey.shade300;
     return SingleChildScrollView(
       padding: const EdgeInsets.symmetric(vertical: 24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24),
-            child: Container(
+          const Padding(
+            padding: EdgeInsets.symmetric(horizontal: 24),
+            child: ShimmerContainer(
               height: 24,
               width: 180,
-              decoration: BoxDecoration(
-                color: shimmerColor,
-                borderRadius: BorderRadius.circular(4),
-              ),
+              borderRadius: 4,
             ),
           ),
           const SizedBox(height: 16),
@@ -334,15 +391,12 @@ class _HomePageState extends ConsumerState<HomePage> {
             ),
           ),
           const SizedBox(height: 32),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24),
-            child: Container(
+          const Padding(
+            padding: EdgeInsets.symmetric(horizontal: 24),
+            child: ShimmerContainer(
               height: 24,
               width: 200,
-              decoration: BoxDecoration(
-                color: shimmerColor,
-                borderRadius: BorderRadius.circular(4),
-              ),
+              borderRadius: 4,
             ),
           ),
           const SizedBox(height: 16),

@@ -87,10 +87,14 @@ class _RoommateProfileScreenState extends ConsumerState<RoommateProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final primaryColor = const Color(0xFFFF385C);
+
     return Scaffold(
-      backgroundColor: const Color(0xFF0F0F0F),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
-        title: const Text('Roommate Profile', style: TextStyle(fontWeight: FontWeight.bold)),
+        title: Text(widget.existingProfile != null ? 'Edit Profile' : 'Create Profile', 
+          style: const TextStyle(fontWeight: FontWeight.bold)),
         backgroundColor: Colors.transparent,
         elevation: 0,
       ),
@@ -101,41 +105,58 @@ class _RoommateProfileScreenState extends ConsumerState<RoommateProfileScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              Text(
+                'Personal Details',
+                style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: isDark ? Colors.white : Colors.black87),
+              ),
+              const SizedBox(height: 8),
               const Text(
-                'Let others know who you are looking for.',
-                style: TextStyle(color: Colors.grey, fontSize: 16),
+                'Let potential roommates know about you.',
+                style: TextStyle(color: Colors.grey, fontSize: 14),
               ),
               const SizedBox(height: 32),
-              _buildTextField('Full Name', _nameController, Icons.person_outline),
+              _buildTextField('Full Name', _nameController, Icons.person_outline, isDark),
               const SizedBox(height: 20),
-              _buildTextField('City', _cityController, Icons.location_city_outlined),
+              _buildTextField('City', _cityController, Icons.location_city_outlined, isDark),
               const SizedBox(height: 20),
-              _buildTextField('Monthly Budget (₹)', _budgetController, Icons.currency_rupee_outlined, isNumber: true),
+              _buildTextField('Monthly Budget (₹)', _budgetController, Icons.currency_rupee_outlined, isDark, isNumber: true),
+              const SizedBox(height: 32),
+              Text(
+                'Preferences',
+                style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: isDark ? Colors.white : Colors.black87),
+              ),
               const SizedBox(height: 24),
-              _buildDropdown('Your Gender', ['Male', 'Female', 'Other'], _selectedGender, (val) => setState(() => _selectedGender = val!)),
+              _buildDropdown('Your Gender', ['Male', 'Female', 'Other'], _selectedGender, (val) => setState(() => _selectedGender = val!), isDark),
               const SizedBox(height: 20),
-              _buildDropdown('Preferred Roommate', ['Any', 'Male', 'Female'], _preferredGender, (val) => setState(() => _preferredGender = val!)),
+              _buildDropdown('Preferred Roommate', ['Any', 'Male', 'Female'], _preferredGender, (val) => setState(() => _preferredGender = val!), isDark),
               const SizedBox(height: 20),
-              _buildDropdown('Occupation', ['Student', 'Working Professional'], _occupation, (val) => setState(() => _occupation = val!)),
-              const SizedBox(height: 24),
-              _buildTextField('Bio (Tell them about your lifestyle)', _bioController, Icons.edit_note_outlined, maxLines: 4),
-              const SizedBox(height: 40),
+              _buildDropdown('Occupation', ['Student', 'Working Professional'], _occupation, (val) => setState(() => _occupation = val!), isDark),
+              const SizedBox(height: 32),
+              Text(
+                'About You',
+                style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: isDark ? Colors.white : Colors.black87),
+              ),
+              const SizedBox(height: 16),
+              _buildTextField('Bio (Your lifestyle, habits, etc.)', _bioController, Icons.edit_note_outlined, isDark, maxLines: 4),
+              const SizedBox(height: 48),
               SizedBox(
                 width: double.infinity,
+                height: 56,
                 child: ElevatedButton(
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.blueAccent,
+                    backgroundColor: primaryColor,
                     foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                     elevation: 0,
                   ),
                   onPressed: _isLoading ? null : _saveProfile,
                   child: _isLoading
-                      ? const CircularProgressIndicator(color: Colors.white)
-                      : const Text('Save Profile', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                      ? const SizedBox(height: 24, width: 24, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                      : Text(widget.existingProfile != null ? 'Update Profile' : 'Save Profile', 
+                          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                 ),
               ),
+              const SizedBox(height: 40),
             ],
           ),
         ),
@@ -143,48 +164,60 @@ class _RoommateProfileScreenState extends ConsumerState<RoommateProfileScreen> {
     );
   }
 
-  Widget _buildTextField(String label, TextEditingController controller, IconData icon, {bool isNumber = false, int maxLines = 1}) {
+  Widget _buildTextField(String label, TextEditingController controller, IconData icon, bool isDark, {bool isNumber = false, int maxLines = 1}) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: const TextStyle(color: Colors.white70, fontWeight: FontWeight.w500)),
-        const SizedBox(height: 8),
+        Text(label, style: TextStyle(color: isDark ? Colors.white70 : Colors.black87, fontWeight: FontWeight.w600, fontSize: 13)),
+        const SizedBox(height: 10),
         TextFormField(
           controller: controller,
           maxLines: maxLines,
           keyboardType: isNumber ? TextInputType.number : TextInputType.text,
-          style: const TextStyle(color: Colors.white),
+          style: TextStyle(color: isDark ? Colors.white : Colors.black),
           decoration: InputDecoration(
-            prefixIcon: Icon(icon, color: Colors.blueAccent.withOpacity(0.7)),
+            prefixIcon: Icon(icon, color: isDark ? Colors.white60 : Colors.black45, size: 20),
             filled: true,
-            fillColor: const Color(0xFF1A1A1A),
+            fillColor: isDark ? const Color(0xFF1E1E1E) : Colors.grey.shade100,
             border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+            enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12), 
+              borderSide: BorderSide(color: const Color(0xFFFF385C).withOpacity(0.5), width: 1.5)
+            ),
             hintText: 'Enter $label',
-            hintStyle: const TextStyle(color: Colors.grey),
+            hintStyle: TextStyle(color: isDark ? Colors.white24 : Colors.black26, fontSize: 14),
+            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
           ),
-          validator: (value) => value == null || value.isEmpty ? 'Required' : null,
+          validator: (value) => value == null || value.isEmpty ? 'This field is required' : null,
         ),
       ],
     );
   }
 
-  Widget _buildDropdown(String label, List<String> items, String value, Function(String?) onChanged) {
+  Widget _buildDropdown(String label, List<String> items, String value, Function(String?) onChanged, bool isDark) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: const TextStyle(color: Colors.white70, fontWeight: FontWeight.w500)),
-        const SizedBox(height: 8),
+        Text(label, style: TextStyle(color: isDark ? Colors.white70 : Colors.black87, fontWeight: FontWeight.w600, fontSize: 13)),
+        const SizedBox(height: 10),
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 16),
-          decoration: BoxDecoration(color: const Color(0xFF1A1A1A), borderRadius: BorderRadius.circular(12)),
+          decoration: BoxDecoration(
+            color: isDark ? const Color(0xFF1E1E1E) : Colors.grey.shade100, 
+            borderRadius: BorderRadius.circular(12)
+          ),
           child: DropdownButtonHideUnderline(
             child: DropdownButton<String>(
               value: value,
-              items: items.map((item) => DropdownMenuItem(value: item, child: Text(item, style: const TextStyle(color: Colors.white)))).toList(),
+              items: items.map((item) => DropdownMenuItem(
+                value: item, 
+                child: Text(item, style: TextStyle(color: isDark ? Colors.white : Colors.black))
+              )).toList(),
               onChanged: onChanged,
-              dropdownColor: const Color(0xFF1F1F1F),
+              dropdownColor: isDark ? const Color(0xFF2C2C2C) : Colors.white,
               isExpanded: true,
-              icon: const Icon(Icons.keyboard_arrow_down, color: Colors.blueAccent),
+              icon: Icon(Icons.keyboard_arrow_down, color: isDark ? Colors.white60 : Colors.black45),
             ),
           ),
         ),
@@ -192,3 +225,4 @@ class _RoommateProfileScreenState extends ConsumerState<RoommateProfileScreen> {
     );
   }
 }
+

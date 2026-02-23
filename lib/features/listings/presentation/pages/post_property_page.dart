@@ -192,14 +192,16 @@ class _PostPropertyPageState extends ConsumerState<PostPropertyPage> {
       firstDate: DateTime.now(),
       lastDate: DateTime.now().add(const Duration(days: 180)),
       builder: (context, child) {
+        final colorScheme = Theme.of(context).colorScheme;
         return Theme(
           data: Theme.of(context).copyWith(
             colorScheme: ColorScheme.dark(
-              primary: Colors.blue,
-              onPrimary: Colors.white,
-              surface: const Color(0xFF1E1E1E),
-              onSurface: Colors.white,
-            ), dialogTheme: DialogThemeData(backgroundColor: const Color(0xFF1E1E1E)),
+              primary: colorScheme.primary,
+              onPrimary: colorScheme.onPrimary,
+              surface: colorScheme.surface,
+              onSurface: colorScheme.onSurface,
+            ),
+            dialogTheme: DialogThemeData(backgroundColor: colorScheme.surface),
           ),
           child: child!,
         );
@@ -357,16 +359,27 @@ class _PostPropertyPageState extends ConsumerState<PostPropertyPage> {
                             height: 100,
                             margin: const EdgeInsets.only(right: 12),
                             decoration: BoxDecoration(
-                              color: Colors.grey.withOpacity(0.1),
+                              color: Theme.of(context).colorScheme.primary.withOpacity(0.05),
                               borderRadius: BorderRadius.circular(12),
-                              border: Border.all(color: Colors.grey.withOpacity(0.4), width: 1, style: BorderStyle.solid),
+                              border: Border.all(
+                                color: Theme.of(context).colorScheme.primary.withOpacity(0.2), 
+                                width: 1, 
+                                style: BorderStyle.solid
+                              ),
                             ),
-                            child: const Column(
+                            child: Column(
                               mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(Icons.add_a_photo, color: Colors.blue, size: 30),
-                                SizedBox(height: 8),
-                                Text("Add Photo", style: TextStyle(fontSize: 12, color: Colors.blue, fontWeight: FontWeight.bold)),
+                               children: [
+                                Icon(Icons.add_a_photo, color: Theme.of(context).primaryColor, size: 30),
+                                const SizedBox(height: 8),
+                                Text(
+                                  "Add Photo", 
+                                  style: TextStyle(
+                                    fontSize: 12, 
+                                    color: Theme.of(context).primaryColor, 
+                                    fontWeight: FontWeight.bold
+                                  )
+                                ),
                               ],
                             ),
                           ),
@@ -422,7 +435,7 @@ class _PostPropertyPageState extends ConsumerState<PostPropertyPage> {
                           'City', 
                           'e.g. Bangalore',
                           suffixIcon: IconButton(
-                            icon: const Icon(Icons.my_location, color: Colors.blue),
+                            icon: Icon(Icons.my_location, color: Theme.of(context).primaryColor),
                             onPressed: _fetchCoordinatesFromCity,
                             tooltip: "Auto-fill Lat/Lng",
                           ),
@@ -511,10 +524,10 @@ class _PostPropertyPageState extends ConsumerState<PostPropertyPage> {
                           children: [
                             ..._availableDates.map((date) => Chip(
                               label: Text('${date.day}/${date.month}/${date.year}'),
-                              backgroundColor: Colors.blue.withOpacity(0.1),
-                              labelStyle: const TextStyle(color: Colors.blue, fontWeight: FontWeight.bold),
+                              backgroundColor: Theme.of(context).primaryColor.withOpacity(0.1),
+                              labelStyle: TextStyle(color: Theme.of(context).primaryColor, fontWeight: FontWeight.bold),
                               onDeleted: () => setState(() => _availableDates.remove(date)),
-                              deleteIcon: const Icon(Icons.close, size: 14, color: Colors.blue),
+                              deleteIcon: Icon(Icons.close, size: 14, color: Theme.of(context).primaryColor),
                               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                               side: BorderSide.none,
                             )),
@@ -527,8 +540,8 @@ class _PostPropertyPageState extends ConsumerState<PostPropertyPage> {
                               icon: const Icon(Icons.add, size: 18),
                               label: const Text('Add Date'),
                               style: OutlinedButton.styleFrom(
-                                foregroundColor: Colors.redAccent,
-                                side: const BorderSide(color: Colors.redAccent),
+                                foregroundColor: Theme.of(context).primaryColor,
+                                side: BorderSide(color: Theme.of(context).primaryColor),
                                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                               ),
                         ),

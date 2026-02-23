@@ -1,4 +1,5 @@
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:shimmer/shimmer.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -256,14 +257,18 @@ class _ListingCardState extends ConsumerState<ListingCard> with SingleTickerProv
         child: Icon(Icons.home_rounded, size: 48, color: Colors.grey.shade500),
       );
     }
+    
+    final placeholder = Shimmer.fromColors(
+      baseColor: isDark ? Colors.grey.shade900 : Colors.grey.shade200,
+      highlightColor: isDark ? Colors.grey.shade800 : Colors.grey.shade100,
+      child: Container(color: Colors.white),
+    );
+
     if (urls.length == 1) {
       return CachedNetworkImage(
         imageUrl: urls.first,
         fit: BoxFit.cover,
-        placeholder: (_, __) => Container(
-          color: isDark ? Colors.grey.shade900 : Colors.grey.shade200,
-          child: const Center(child: CircularProgressIndicator(strokeWidth: 2)),
-        ),
+        placeholder: (_, __) => placeholder,
         errorWidget: (_, __, ___) => Container(
           color: isDark ? Colors.grey.shade900 : Colors.grey.shade200,
           child: const Icon(Icons.broken_image_outlined, color: Colors.grey),
@@ -277,10 +282,7 @@ class _ListingCardState extends ConsumerState<ListingCard> with SingleTickerProv
         return CachedNetworkImage(
           imageUrl: urls[index],
           fit: BoxFit.cover,
-          placeholder: (_, __) => Container(
-            color: isDark ? Colors.grey.shade900 : Colors.grey.shade200,
-            child: const Center(child: CircularProgressIndicator(strokeWidth: 2)),
-          ),
+          placeholder: (_, __) => placeholder,
           errorWidget: (_, __, ___) => Container(
             color: isDark ? Colors.grey.shade900 : Colors.grey.shade200,
             child: const Icon(Icons.broken_image_outlined, color: Colors.grey),

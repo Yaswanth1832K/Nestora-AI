@@ -14,6 +14,7 @@ import 'package:house_rental/features/auth/domain/entities/user_entity.dart';
 import 'package:house_rental/features/auth/domain/usecases/update_password_usecase.dart';
 import 'package:house_rental/features/auth/domain/usecases/update_user_role_usecase.dart';
 import 'package:house_rental/features/auth/domain/usecases/update_profile_usecase.dart';
+import 'package:house_rental/features/auth/domain/usecases/update_fcm_token_usecase.dart';
 import 'package:house_rental/features/notifications/presentation/providers/notification_providers.dart';
 
 // Data Layer Providers
@@ -63,6 +64,10 @@ final updateProfileUseCaseProvider = Provider<UpdateProfileUseCase>((ref) {
 
 final updateUserRoleUseCaseProvider = Provider<UpdateUserRoleUseCase>((ref) {
   return UpdateUserRoleUseCase(ref.read(authRepositoryProvider));
+});
+
+final updateFcmTokenUseCaseProvider = Provider<UpdateFcmTokenUseCase>((ref) {
+  return UpdateFcmTokenUseCase(ref.read(authRepositoryProvider));
 });
 
 // Role-based Providers (Real-time)

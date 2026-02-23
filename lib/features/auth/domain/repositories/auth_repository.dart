@@ -33,4 +33,7 @@ abstract interface class AuthRepository {
 
   /// Update the user's role
   Future<Either<Failure, void>> updateUserRole(String uid, String newRole);
+
+  /// Update FCM token for push notifications
+  Future<Either<Failure, void>> updateFcmToken(String token);
 }
