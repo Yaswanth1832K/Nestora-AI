@@ -1,7 +1,8 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:house_rental/features/auth/presentation/providers/auth_providers.dart';
+import 'package:house_rental/features/reviews/domain/entities/review_entity.dart';
+import 'package:house_rental/features/reviews/presentation/providers/review_providers.dart';
 import 'package:uuid/uuid.dart';
 
 class ReviewScreen extends ConsumerStatefulWidget {
@@ -40,34 +41,49 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
     setState(() => _isLoading = true);
 
     try {
-      final reviewId = const Uuid().v4();
-      await FirebaseFirestore.instance.collection('reviews').doc(reviewId).set({
-        'listingId': widget.listingId,
-        'listingTitle': widget.listingTitle,
-        'ownerId': widget.ownerId,
-        'reviewerId': user.uid,
-        'reviewerName': user.displayName ?? 'Anonymous',
-        'bookingId': widget.bookingId,
-        'rating': _rating.toDouble(),
-        'comment': _commentController.text.trim(),
-        'createdAt': FieldValue.serverTimestamp(),
-      });
+      final review = ReviewEntity(
+        id: const Uuid().v4(),
+        listingId: widget.listingId,
+        listingTitle: widget.listingTitle,
+        ownerId: widget.ownerId,
+        reviewerId: user.uid,
+        reviewerName: user.displayName ?? 'Anonymous',
+        bookingId: widget.bookingId,
+        rating: _rating.toDouble(),
+        comment: _commentController.text.trim(),
+        createdAt: DateTime.now(),
+      );
+
+      final result = await ref.read(addReviewUseCaseProvider)(review);
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text("Thank you for your review!"),
-            backgroundColor: Colors.green,
-          ),
+        final colorScheme = Theme.of(context).colorScheme;
+        result.fold(
+          (failure) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text("Failed to submit review: ${failure.message}"),
+                backgroundColor: colorScheme.error,
+              ),
+            );
+          },
+          (_) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: const Text("Thank you for your review!"),
+                backgroundColor: colorScheme.primary,
+              ),
+            );
+            Navigator.pop(context);
+          },
         );
-        Navigator.pop(context);
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text("Failed to submit review: $e"),
-            backgroundColor: Colors.redAccent,
+            content: Text("Error: $e"),
+            backgroundColor: Theme.of(context).colorScheme.error,
           ),
         );
       }
@@ -78,13 +94,16 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Audit finding: Screen had hardcoded dark background. 
+    // Using Theme.of(context) for market-ready theming.
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Scaffold(
-      backgroundColor: const Color(0xFF0F0F0F),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
-        title: const Text("Write a Review", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+        title: const Text("Write a Review", style: TextStyle(fontWeight: FontWeight.bold)),
         backgroundColor: Colors.transparent,
         elevation: 0,
-        iconTheme: const IconThemeData(color: Colors.white),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(24),
@@ -93,24 +112,28 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
           children: [
             Text(
               "How was your visit to ${widget.listingTitle}?",
-              style: const TextStyle(
-                color: Colors.white,
+              style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
+                color: isDark ? Colors.white : Colors.black87,
               ),
             ),
             const SizedBox(height: 8),
-            const Text(
+            Text(
               "Your feedback helps others find their perfect home.",
-              style: TextStyle(color: Colors.grey, fontSize: 14),
+              style: TextStyle(color: Colors.grey.shade500, fontSize: 14),
             ),
             const SizedBox(height: 32),
             Center(
               child: Column(
                 children: [
-                  const Text(
+                  Text(
                     "Overall Rating",
-                    style: TextStyle(color: Colors.white70, fontSize: 16, fontWeight: FontWeight.w500),
+                    style: TextStyle(
+                      color: isDark ? Colors.white70 : Colors.black54, 
+                      fontSize: 16, 
+                      fontWeight: FontWeight.w500
+                    ),
                   ),
                   const SizedBox(height: 16),
                   Row(
@@ -134,23 +157,41 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
               ),
             ),
             const SizedBox(height: 40),
-            const Text(
+            Text(
               "Share more details",
-              style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+              style: TextStyle(
+                fontSize: 18, 
+                fontWeight: FontWeight.bold,
+                color: isDark ? Colors.white : Colors.black87,
+              ),
             ),
             const SizedBox(height: 12),
             TextField(
               controller: _commentController,
-              style: const TextStyle(color: Colors.white),
               maxLines: 5,
+              style: TextStyle(color: isDark ? Colors.white : Colors.black87),
               decoration: InputDecoration(
                 hintText: "What did you like or dislike about the property or the owner?",
-                hintStyle: TextStyle(color: Colors.grey.withOpacity(0.5)),
-                fillColor: const Color(0xFF1A1A1A),
+                hintStyle: TextStyle(color: isDark ? Colors.white38 : Colors.grey.shade400),
+                fillColor: isDark ? Colors.white.withOpacity(0.05) : Colors.grey.shade100,
                 filled: true,
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(16),
-                  borderSide: BorderSide.none,
+                  borderSide: BorderSide(
+                    color: isDark ? Colors.white10 : Colors.grey.shade200,
+                  ),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(16),
+                  borderSide: BorderSide(
+                    color: isDark ? Colors.white10 : Colors.grey.shade200,
+                  ),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(16),
+                  borderSide: BorderSide(
+                    color: Theme.of(context).primaryColor,
+                  ),
                 ),
                 contentPadding: const EdgeInsets.all(16),
               ),
@@ -162,7 +203,7 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
               child: ElevatedButton(
                 onPressed: _isLoading ? null : _submitReview,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.blueAccent,
+                  backgroundColor: Theme.of(context).primaryColor,
                   foregroundColor: Colors.white,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(16),
