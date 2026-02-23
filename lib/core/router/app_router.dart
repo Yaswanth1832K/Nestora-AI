@@ -13,6 +13,7 @@ import 'package:house_rental/core/router/splash_screen.dart';
 import 'package:house_rental/features/visit_requests/presentation/pages/owner_requests_page.dart';
 import 'package:house_rental/features/visit_requests/presentation/pages/my_visits_page.dart';
 import 'package:house_rental/features/owner/presentation/owner_dashboard_page.dart';
+import 'package:house_rental/features/home/presentation/pages/service_booking_page.dart'; // [NEW]
 import 'package:house_rental/features/owner/presentation/property_requests_screen.dart';
 import 'package:house_rental/features/search/presentation/pages/search_page.dart';
 import 'package:house_rental/features/profile/presentation/pages/subpages/edit_profile_page.dart';
@@ -204,6 +205,16 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (context, state) => const OwnerDashboardPage(),
       ),
       GoRoute(
+        path: AppRouter.serviceBooking,
+        builder: (context, state) {
+          final extra = state.extra as Map<String, dynamic>?;
+          return ServiceBookingPage(
+            serviceName: extra?['serviceName'] ?? 'Service',
+            serviceIcon: extra?['serviceIcon'] ?? Icons.handyman,
+          );
+        },
+      ),
+      GoRoute(
         path: AppRouter.myProperties,
         builder: (context, state) => const OwnerPropertiesScreen(),
       ),
@@ -267,6 +278,7 @@ final class AppRouter {
   static const String languageRegion = '/language-region';
   static const String privacyPolicy = '/privacy-policy';
   static const String ownerDashboard = '/owner-dashboard';
+  static const String serviceBooking = '/service-booking';
   static const String myProperties = '/my-properties';
   static const String propertyRequests = '/property-requests';
   static const String rentPayments = '/rent-payments';

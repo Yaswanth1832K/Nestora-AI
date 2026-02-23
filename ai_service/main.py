@@ -163,3 +163,43 @@ Provide a helpful, concise, and practical answer (2-3 sentences max). Focus on b
             "error": str(e),
             "reply": f"Sorry, I could not process your question. Error: {str(e)}"
         }
+
+class RecommendationRequest(BaseModel):
+    user_preferences: str
+    available_properties: str  # JSON string of property listings
+
+@app.post("/recommendations")
+def get_recommendations(data: RecommendationRequest):
+    """
+    AI-powered property recommendations based on user preferences.
+    """
+    try:
+        model = genai.GenerativeModel('gemini-flash-latest')
+        prompt = f"""You are an expert real estate AI assistant. 
+Based on the following user preferences and available properties, recommend the top 3 best matching properties.
+
+User Preferences:
+{data.user_preferences}
+
+Available Properties (JSON format):
+{data.available_properties}
+
+Analyze the properties and select the best matches. For each selected property, provide:
+1. The property ID
+2. A brief, personalized explanation (1-2 sentences) of why it's a great fit.
+
+Format the response consistently, extracting the EXACT property ID from the provided data."""
+        
+        response = model.generate_content(prompt)
+        
+        return {
+            "success": True,
+            "recommendations": response.text
+        }
+    except Exception as e:
+        print(f"❌ Error getting recommendations: {str(e)}")
+        return {
+            "success": False,
+            "error": str(e)
+        }
+
