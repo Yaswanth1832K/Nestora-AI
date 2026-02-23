@@ -6,7 +6,8 @@ import 'package:house_rental/features/auth/presentation/providers/auth_providers
 import 'package:house_rental/core/theme/theme_provider.dart';
 import 'package:house_rental/features/auth/domain/usecases/update_user_role_usecase.dart';
 import 'package:house_rental/features/profile/presentation/widgets/profile_widgets.dart';
-import 'package:house_rental/l10n/app_localizations.dart';
+import 'package:house_rental/core/widgets/glass_container.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 final notificationsProvider = StateProvider<bool>((ref) => true);
 
@@ -106,9 +107,15 @@ class ProfilePage extends ConsumerWidget {
               // ROLE-SPECIFIC SECTION
               if (isOwner)
                 ProfileSection(
-                  title: "Hosting", // Fixed label for Owner
+                  title: "Hosting",
                   isDark: isDark,
                   children: [
+                    ProfileMenuItem(
+                      icon: Icons.dashboard_outlined,
+                      title: 'Dashboard',
+                      onTap: () => context.push(AppRouter.ownerDashboard),
+                      isDark: isDark,
+                    ),
                     ProfileMenuItem(
                       icon: Icons.home_work_outlined,
                       title: AppLocalizations.of(context)!.myListings,
@@ -140,6 +147,13 @@ class ProfilePage extends ConsumerWidget {
                   title: "Renting", // Fixed label for Renter
                   isDark: isDark,
                   children: [
+                    ProfileMenuItem(
+                      icon: Icons.auto_awesome,
+                      title: 'AI Recommendations',
+                      onTap: () => context.push(AppRouter.aiRecommendations),
+                      isDark: isDark,
+                      iconColor: Colors.purple,
+                    ),
                     ProfileMenuItem(
                       icon: Icons.favorite_border,
                       title: AppLocalizations.of(context)!.savedProperties,

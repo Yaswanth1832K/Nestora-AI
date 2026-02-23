@@ -1,80 +1,6 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
-
-class GlassContainer extends StatelessWidget {
-  final Widget child;
-  final double blur;
-  final double opacity;
-  final Color color;
-  final BorderRadius? borderRadius;
-  final EdgeInsetsGeometry? padding;
-  final EdgeInsetsGeometry? margin;
-
-  const GlassContainer({
-    super.key,
-    required this.child,
-    this.blur = 10.0,
-    this.opacity = 0.1,
-    this.color = Colors.white,
-    this.borderRadius,
-    this.padding,
-    this.margin,
-  });
-
-  // Factory constructor for standard glass look
-  factory GlassContainer.standard({
-    Key? key,
-    required Widget child,
-    required bool isDark,
-    EdgeInsetsGeometry? padding,
-    EdgeInsetsGeometry? margin,
-  }) {
-    return GlassContainer(
-      key: key,
-      blur: 15,
-      opacity: isDark ? 0.05 : 0.6,
-      color: Colors.white,
-      padding: padding,
-      margin: margin,
-      child: child,
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      margin: margin,
-      decoration: BoxDecoration(
-        borderRadius: borderRadius ?? BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: ClipRRect(
-        borderRadius: borderRadius ?? BorderRadius.circular(16),
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: blur, sigmaY: blur),
-          child: Container(
-            padding: padding ?? const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: color.withOpacity(opacity),
-              borderRadius: borderRadius ?? BorderRadius.circular(16),
-              border: Border.all(
-                color: Colors.white.withOpacity(0.2),
-                width: 1.5,
-              ),
-            ),
-            child: child,
-          ),
-        ),
-      ),
-    );
-  }
-}
+import 'package:house_rental/core/widgets/glass_container.dart';
 
 class ProfileSection extends StatelessWidget {
   final String title;
@@ -94,22 +20,18 @@ class ProfileSection extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: const EdgeInsets.only(left: 4, bottom: 8),
+          padding: const EdgeInsets.only(top: 24, bottom: 16),
           child: Text(
             title,
             style: TextStyle(
-              fontSize: 18,
+              fontSize: 22,
               fontWeight: FontWeight.bold,
-              color: isDark ? Colors.white : Colors.black87,
+              color: isDark ? Colors.white : Colors.black,
             ),
           ),
         ),
-        // Used GlassContainer.standard correctly
-        GlassContainer.standard(
-          isDark: isDark,
-          child: Column(
-            children: children,
-          ),
+        Column(
+          children: children,
         ),
       ],
     );
@@ -119,6 +41,7 @@ class ProfileSection extends StatelessWidget {
 class ProfileMenuItem extends StatelessWidget {
   final IconData icon;
   final String title;
+  final String? subtitle;
   final VoidCallback onTap;
   final bool isDark;
   final Widget? trailing;
@@ -128,6 +51,7 @@ class ProfileMenuItem extends StatelessWidget {
     super.key,
     required this.icon,
     required this.title,
+    this.subtitle,
     required this.onTap,
     required this.isDark,
     this.trailing,
@@ -136,38 +60,50 @@ class ProfileMenuItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final textColor = isDark ? Colors.white : Colors.black87;
+    final textColor = isDark ? Colors.white : const Color(0xFF222222);
+    final subTextColor = isDark ? Colors.grey.shade400 : const Color(0xFF717171);
     
     return Material(
       color: Colors.transparent,
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(8),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 12),
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 16),
+          decoration: BoxDecoration(
+            border: Border(bottom: BorderSide(color: Colors.grey.shade200, width: 1)),
+          ),
           child: Row(
             children: [
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: isDark ? Colors.white.withOpacity(0.1) : Colors.grey.shade100,
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Icon(
-                  icon,
-                  size: 20,
-                  color: iconColor ?? (isDark ? Colors.white : Colors.black54),
-                ),
+              Icon(
+                icon,
+                size: 28, // Matches Airbnb thin stroke icons visually better
+                color: iconColor ?? (isDark ? Colors.white : const Color(0xFF222222)),
               ),
               const SizedBox(width: 16),
               Expanded(
-                child: Text(
-                  title,
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w500,
-                    color: textColor,
-                  ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      title,
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w400, // Standard weight
+                        color: textColor,
+                      ),
+                    ),
+                    if (subtitle != null) ...[
+                      const SizedBox(height: 2),
+                      Text(
+                        subtitle!,
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: subTextColor,
+                        ),
+                      ),
+                    ],
+                  ],
                 ),
               ),
               if (trailing != null)
@@ -175,8 +111,8 @@ class ProfileMenuItem extends StatelessWidget {
               else
                 Icon(
                   Icons.chevron_right_rounded,
-                  size: 20,
-                  color: isDark ? Colors.white54 : Colors.black26,
+                  size: 28,
+                  color: isDark ? Colors.white54 : const Color(0xFF717171),
                 ),
             ],
           ),

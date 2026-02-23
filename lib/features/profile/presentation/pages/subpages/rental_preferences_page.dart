@@ -1,14 +1,18 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:house_rental/core/theme/app_colors.dart';
+import 'package:house_rental/features/auth/presentation/providers/auth_providers.dart';
+import 'package:house_rental/core/providers/firebase_provider.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
-class RentalPreferencesPage extends StatefulWidget {
+class RentalPreferencesPage extends ConsumerStatefulWidget {
   const RentalPreferencesPage({super.key});
 
   @override
-  State<RentalPreferencesPage> createState() => _RentalPreferencesPageState();
+  ConsumerState<RentalPreferencesPage> createState() => _RentalPreferencesPageState();
 }
 
-class _RentalPreferencesPageState extends State<RentalPreferencesPage> {
+class _RentalPreferencesPageState extends ConsumerState<RentalPreferencesPage> {
   // Existing
   String _currency = 'USD';
   String _unitSystem = 'Metric';
@@ -35,23 +39,109 @@ class _RentalPreferencesPageState extends State<RentalPreferencesPage> {
   bool _isLoading = false;
 
   @override
+  void initState() {
+    super.initState();
+    // Use addPostFrameCallback to access ref after the widget is built
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadPreferences();
+    });
+  }
+
+  Future<void> _loadPreferences() async {
+    final user = ref.read(authStateProvider).value;
+    if (user == null) return;
+
+    setState(() => _isLoading = true);
+
+    try {
+      final firestore = ref.read(firestoreProvider);
+      final doc = await firestore.collection('users').doc(user.uid).get();
+      
+      if (doc.exists && doc.data()?['rentalPreferences'] != null) {
+        final prefs = doc.data()!['rentalPreferences'] as Map<String, dynamic>;
+        
+        setState(() {
+          _currency = prefs['currency'] ?? 'USD';
+          _unitSystem = prefs['unitSystem'] ?? 'Metric';
+          _instantBook = prefs['instantBook'] ?? false;
+          _propertyType = prefs['propertyType'] ?? 'Apartment';
+          
+          final double budgetMin = (prefs['budgetMin'] ?? 500).toDouble();
+          final double budgetMax = (prefs['budgetMax'] ?? 3000).toDouble();
+          _budgetRange = RangeValues(budgetMin, budgetMax);
+          
+          _locationController.text = prefs['location'] ?? '';
+          _bedrooms = prefs['bedrooms'] ?? 1;
+          
+          if (prefs['amenities'] != null) {
+            final Map<String, dynamic> incomingAmenities = prefs['amenities'];
+            incomingAmenities.forEach((key, value) {
+              if (_amenities.containsKey(key)) {
+                _amenities[key] = value as bool;
+              }
+            });
+          }
+        });
+      }
+    } catch (e) {
+      debugPrint("Error loading preferences: $e");
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  @override
   void dispose() {
     _locationController.dispose();
     super.dispose();
   }
 
   Future<void> _savePreferences() async {
+    final user = ref.read(authStateProvider).value;
+    if (user == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Please log in to save preferences.")),
+      );
+      return;
+    }
+
     setState(() => _isLoading = true);
     
-    // Simulate network delay
-    await Future.delayed(const Duration(seconds: 1));
-    
-    if (!mounted) return;
-    setState(() => _isLoading = false);
-    
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text("Preferences saved successfully!")),
-    );
+    try {
+      final firestore = ref.read(firestoreProvider);
+      await firestore.collection('users').doc(user.uid).set(
+        {
+          'rentalPreferences': {
+            'currency': _currency,
+            'unitSystem': _unitSystem,
+            'instantBook': _instantBook,
+            'propertyType': _propertyType,
+            'budgetMin': _budgetRange.start.round(),
+            'budgetMax': _budgetRange.end.round(),
+            'location': _locationController.text,
+            'bedrooms': _bedrooms,
+            'amenities': _amenities, // Map of string to bool
+            'updatedAt': DateTime.now().toIso8601String(),
+          }
+        },
+        SetOptions(merge: true),
+      );
+
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Preferences saved successfully!"),
+          backgroundColor: Colors.green,
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Failed to save: $e"), backgroundColor: Colors.red),
+      );
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
   }
 
   @override
@@ -90,7 +180,7 @@ class _RentalPreferencesPageState extends State<RentalPreferencesPage> {
             title: const Text("Instant Book"),
             subtitle: const Text("Allow guests to book without approval"),
             value: _instantBook,
-            activeColor: AppColors.primary,
+            activeThumbColor: AppColors.primary,
             onChanged: (val) => setState(() => _instantBook = val),
           ),
           const Divider(),

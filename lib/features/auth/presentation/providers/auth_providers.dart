@@ -14,6 +14,7 @@ import 'package:house_rental/features/auth/domain/entities/user_entity.dart';
 import 'package:house_rental/features/auth/domain/usecases/update_password_usecase.dart';
 import 'package:house_rental/features/auth/domain/usecases/update_user_role_usecase.dart';
 import 'package:house_rental/features/auth/domain/usecases/update_profile_usecase.dart';
+import 'package:house_rental/features/auth/domain/usecases/update_fcm_token_usecase.dart';
 import 'package:house_rental/features/notifications/presentation/providers/notification_providers.dart';
 
 // Data Layer Providers
@@ -65,6 +66,10 @@ final updateUserRoleUseCaseProvider = Provider<UpdateUserRoleUseCase>((ref) {
   return UpdateUserRoleUseCase(ref.read(authRepositoryProvider));
 });
 
+final updateFcmTokenUseCaseProvider = Provider<UpdateFcmTokenUseCase>((ref) {
+  return UpdateFcmTokenUseCase(ref.read(authRepositoryProvider));
+});
+
 // Role-based Providers (Real-time)
 final currentUserProvider = StreamProvider<UserEntity?>((ref) {
   final authState = ref.watch(authStateProvider);
@@ -90,4 +95,10 @@ final userRoleProvider = Provider<AsyncValue<String>>((ref) {
 final isOwnerProvider = Provider<AsyncValue<bool>>((ref) {
   final roleSnapshot = ref.watch(userRoleProvider);
   return roleSnapshot.whenData((role) => role == 'owner');
+});
+
+final userProfileProvider = FutureProvider.family<UserEntity?, String>((ref, uid) async {
+  final doc = await ref.watch(firestoreProvider).collection('users').doc(uid).get();
+  if (!doc.exists) return null;
+  return UserModel.fromFirestore(doc);
 });

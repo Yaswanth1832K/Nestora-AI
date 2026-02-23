@@ -34,8 +34,8 @@ class _HelpCenterPageState extends ConsumerState<HelpCenterPage> {
     if (method == 'email') {
       url = Uri.parse('mailto:support@nestora.ai?subject=Help Request');
     } else {
-      // Mock WhatsApp or Chat
-      url = Uri.parse('https://wa.me/1234567890');
+      // Improved WhatsApp link with pre-filled message
+      url = Uri.parse('https://wa.me/1234567890?text=I%20need%20help%20with%20Nestora%20App');
     }
 
     if (await canLaunchUrl(url)) {

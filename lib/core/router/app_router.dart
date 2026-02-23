@@ -12,6 +12,8 @@ import 'package:house_rental/features/listings/presentation/pages/post_property_
 import 'package:house_rental/core/router/splash_screen.dart';
 import 'package:house_rental/features/visit_requests/presentation/pages/owner_requests_page.dart';
 import 'package:house_rental/features/visit_requests/presentation/pages/my_visits_page.dart';
+import 'package:house_rental/features/owner/presentation/owner_dashboard_page.dart';
+import 'package:house_rental/features/home/presentation/pages/service_booking_page.dart'; // [NEW]
 import 'package:house_rental/features/owner/presentation/property_requests_screen.dart';
 import 'package:house_rental/features/search/presentation/pages/search_page.dart';
 import 'package:house_rental/features/profile/presentation/pages/subpages/edit_profile_page.dart';
@@ -25,10 +27,14 @@ import 'package:house_rental/features/profile/presentation/pages/subpages/privac
 import 'package:house_rental/features/profile/presentation/pages/subpages/message_settings_page.dart';
 import 'package:house_rental/features/profile/presentation/pages/subpages/notifications_page.dart';
 import 'package:house_rental/features/rent_payments/presentation/pages/rent_payments_page.dart';
+import 'package:house_rental/features/rent_payments/presentation/pages/rental_agreements_page.dart';
+import 'package:house_rental/features/rent_payments/presentation/pages/home_loans_page.dart';
 import 'package:house_rental/features/favorites/presentation/pages/favorites_page.dart';
+import 'package:house_rental/features/ai_services/presentation/recommendations_view.dart';
 import 'package:house_rental/core/navigation/main_navigation.dart';
 // import 'package:house_rental/features/chat/presentation/pages/inbox_page.dart'; // Removed old import to avoid conflict
-import 'package:house_rental/features/map/presentation/pages/map_page.dart';
+import 'package:flutter/material.dart';
+import 'package:house_rental/features/home/presentation/pages/home_page.dart';
 import 'package:house_rental/features/chat/presentation/pages/chat_page.dart';
 import 'package:house_rental/features/owner/presentation/owner_properties_screen.dart';
 import 'package:house_rental/features/auth/presentation/pages/auth_page.dart';
@@ -196,6 +202,20 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (context, state) => const FavoritesPage(),
       ),
       GoRoute(
+        path: AppRouter.ownerDashboard,
+        builder: (context, state) => const OwnerDashboardPage(),
+      ),
+      GoRoute(
+        path: AppRouter.serviceBooking,
+        builder: (context, state) {
+          final extra = state.extra as Map<String, dynamic>?;
+          return ServiceBookingPage(
+            serviceName: extra?['serviceName'] ?? 'Service',
+            serviceIcon: extra?['serviceIcon'] ?? Icons.handyman,
+          );
+        },
+      ),
+      GoRoute(
         path: AppRouter.myProperties,
         builder: (context, state) => const OwnerPropertiesScreen(),
       ),
@@ -212,6 +232,18 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: AppRouter.rentPayments,
         builder: (context, state) => const RentPaymentsPage(),
+      ),
+      GoRoute(
+        path: AppRouter.rentalAgreements,
+        builder: (context, state) => const RentalAgreementsPage(),
+      ),
+      GoRoute(
+        path: AppRouter.homeLoans,
+        builder: (context, state) => const HomeLoansPage(),
+      ),
+      GoRoute(
+        path: AppRouter.aiRecommendations,
+        builder: (context, state) => const RecommendationsView(),
       ),
     ],
   );
@@ -246,7 +278,12 @@ final class AppRouter {
   static const String reportIssue = '/report-issue';
   static const String languageRegion = '/language-region';
   static const String privacyPolicy = '/privacy-policy';
+  static const String ownerDashboard = '/owner-dashboard';
+  static const String serviceBooking = '/service-booking';
   static const String myProperties = '/my-properties';
   static const String propertyRequests = '/property-requests';
   static const String rentPayments = '/rent-payments';
+  static const String rentalAgreements = '/rental-agreements';
+  static const String homeLoans = '/home-loans';
+  static const String aiRecommendations = '/ai-recommendations';
 }

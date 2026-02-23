@@ -1,9 +1,9 @@
+import 'package:equatable/equatable.dart';
 import 'package:dartz/dartz.dart';
 import 'package:house_rental/core/errors/failures.dart';
 import 'package:house_rental/features/listings/domain/entities/listing_entity.dart';
 
-
-class ListingFilter {
+class ListingFilter extends Equatable {
   final String? searchQuery;
   final String? city;
   final double? minPrice;
@@ -49,6 +49,19 @@ class ListingFilter {
       propertyType: propertyType ?? this.propertyType,
     );
   }
+
+  @override
+  List<Object?> get props => [
+        searchQuery,
+        city,
+        minPrice,
+        maxPrice,
+        bedrooms,
+        bathrooms,
+        furnishing,
+        amenities,
+        propertyType,
+      ];
 }
 
 abstract interface class ListingRepository {

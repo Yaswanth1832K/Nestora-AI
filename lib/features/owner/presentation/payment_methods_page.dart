@@ -15,6 +15,42 @@ class _PaymentMethodsPageState extends ConsumerState<PaymentMethodsPage> {
     {'type': 'UPI', 'details': 'user@okhdfcbank', 'isPrimary': false},
   ];
 
+  void _addMockAccount() {
+    setState(() {
+      _methods.add({
+        'type': 'Bank Account',
+        'details': 'Standard Chartered •••• 5678',
+        'isPrimary': false,
+      });
+    });
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text("Mock bank account added successfully!"),
+        backgroundColor: Colors.green,
+      ),
+    );
+  }
+
+  void _setPrimary(int index) {
+    setState(() {
+      for (int i = 0; i < _methods.length; i++) {
+        _methods[i]['isPrimary'] = (i == index);
+      }
+    });
+  }
+
+  void _removeMethod(int index) {
+    if (_methods[index]['isPrimary'] && _methods.length > 1) {
+       ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Cannot remove primary method. Set another primary first.")),
+      );
+      return;
+    }
+    setState(() {
+      _methods.removeAt(index);
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -23,11 +59,7 @@ class _PaymentMethodsPageState extends ConsumerState<PaymentMethodsPage> {
         elevation: 0,
       ),
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: () {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text("Add method functionality coming soon!")),
-          );
-        },
+        onPressed: _addMockAccount,
         label: const Text("Add Method"),
         icon: const Icon(Icons.add),
       ),
@@ -38,23 +70,26 @@ class _PaymentMethodsPageState extends ConsumerState<PaymentMethodsPage> {
         itemBuilder: (context, index) {
           final method = _methods[index];
           final isPrimary = method['isPrimary'] as bool;
+          final colorScheme = Theme.of(context).colorScheme;
 
           return Container(
             decoration: BoxDecoration(
               color: Theme.of(context).cardColor,
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: isPrimary ? Colors.blue.withOpacity(0.5) : Colors.grey.withOpacity(0.2)),
+              border: Border.all(
+                color: isPrimary ? colorScheme.primary.withOpacity(0.5) : colorScheme.outline.withOpacity(0.2),
+              ),
             ),
             child: ListTile(
               leading: Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: Colors.grey.withOpacity(0.1),
+                  color: colorScheme.surfaceVariant.withOpacity(0.5),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Icon(
                   method['type'] == 'UPI' ? Icons.qr_code : Icons.account_balance,
-                  color: Theme.of(context).iconTheme.color,
+                  color: colorScheme.primary,
                 ),
               ),
               title: Text(method['type'], style: const TextStyle(fontWeight: FontWeight.bold)),
@@ -63,11 +98,11 @@ class _PaymentMethodsPageState extends ConsumerState<PaymentMethodsPage> {
                 ? Container(
                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                     decoration: BoxDecoration(
-                      color: Colors.blue.withOpacity(0.1),
+                      color: colorScheme.primaryContainer,
                       borderRadius: BorderRadius.circular(12),
                     ),
-                    child: const Text("PRIMARY", style: TextStyle(
-                      color: Colors.blue, 
+                    child: Text("PRIMARY", style: TextStyle(
+                      color: colorScheme.onPrimaryContainer, 
                       fontSize: 10, 
                       fontWeight: FontWeight.bold
                     )),
@@ -75,12 +110,17 @@ class _PaymentMethodsPageState extends ConsumerState<PaymentMethodsPage> {
                 : PopupMenuButton(
                     itemBuilder: (context) => [
                       const PopupMenuItem(value: 'primary', child: Text("Set as Primary")),
-                      const PopupMenuItem(value: 'remove', child: Text("Remove", style: TextStyle(color: Colors.red))),
+                      PopupMenuItem(
+                        value: 'remove', 
+                        child: Text("Remove", style: TextStyle(color: colorScheme.error)),
+                      ),
                     ],
                     onSelected: (val) {
-                       ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text("Action: $val")),
-                      );
+                       if (val == 'primary') {
+                         _setPrimary(index);
+                       } else if (val == 'remove') {
+                         _removeMethod(index);
+                       }
                     },
                   ),
             ),
