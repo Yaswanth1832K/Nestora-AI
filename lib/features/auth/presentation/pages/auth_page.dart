@@ -1,14 +1,17 @@
 import 'dart:ui';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:house_rental/core/router/app_router.dart';
 import 'package:house_rental/features/auth/presentation/providers/auth_providers.dart';
 import 'package:uuid/uuid.dart';
 import 'package:house_rental/features/notifications/domain/entities/notification_entity.dart';
 import 'package:house_rental/features/notifications/presentation/providers/notification_providers.dart';
 import 'package:house_rental/l10n/generated/app_localizations.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 // ── Brand colors ──────────────────────────────────────────────
 const _kPurple     = Color(0xFF7C5CBF);
@@ -44,11 +47,45 @@ class _AuthPageState extends ConsumerState<AuthPage>
   bool   _rememberMe = true;
   String? _error;
 
+  // SharedPreferences keys
+  static const _kRememberMe  = 'remember_me';
+  static const _kSavedEmail  = 'saved_email';
+
   @override
   void initState() {
     super.initState();
     _tabCtrl = TabController(length: 2, vsync: this);
     _tabCtrl.addListener(() => setState(() => _error = null));
+    _loadRememberMe();
+  }
+
+  /// Restore the saved email + remember-me flag from local storage.
+  Future<void> _loadRememberMe() async {
+    final prefs = await SharedPreferences.getInstance();
+    final remember = prefs.getBool(_kRememberMe) ?? true;
+    final savedEmail = prefs.getString(_kSavedEmail) ?? '';
+    if (mounted) {
+      setState(() {
+        _rememberMe = remember;
+        if (remember && savedEmail.isNotEmpty) {
+          _loginEmail.text = savedEmail;
+        }
+      });
+    }
+  }
+
+  /// Persist email so it can be auto-filled on next launch.
+  Future<void> _saveRememberMe(String email) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_kRememberMe, true);
+    await prefs.setString(_kSavedEmail, email);
+  }
+
+  /// Clear saved credentials when Remember Me is turned off.
+  Future<void> _clearRememberMe() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_kRememberMe, false);
+    await prefs.remove(_kSavedEmail);
   }
 
   @override
@@ -66,18 +103,34 @@ class _AuthPageState extends ConsumerState<AuthPage>
       return setState(() => _error = AppLocalizations.of(context)!.fillFieldsError);
     }
     setState(() { _loading = true; _error = null; });
+
+    // On web, set LOCAL persistence so the session survives browser close
+    // when Remember Me is checked.
+    if (kIsWeb) {
+      await FirebaseAuth.instance.setPersistence(
+        _rememberMe ? Persistence.LOCAL : Persistence.SESSION,
+      );
+    }
+
     final res = await ref.read(signInUseCaseProvider).call(
         email: _loginEmail.text.trim(), password: _loginPassword.text.trim());
     if (!mounted) return;
     setState(() => _loading = false);
     res.fold(
       (f) => setState(() => _error = f.message),
-      (user) {
+      (user) async {
+        // Persist / clear saved email based on Remember Me toggle
+        if (_rememberMe) {
+          await _saveRememberMe(_loginEmail.text.trim());
+        } else {
+          await _clearRememberMe();
+        }
+
         ref.read(addNotificationUseCaseProvider)(user.uid,
           NotificationEntity(id: const Uuid().v4(), title: 'New Login',
               body: 'A new login was detected on your account.',
               timestamp: DateTime.now(), type: 'alert', isRead: false));
-        context.go(AppRouter.home);
+        if (mounted) context.go(AppRouter.home);
       },
     );
   }
