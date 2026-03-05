@@ -91,11 +91,14 @@ class FavoritesPage extends ConsumerWidget {
                       // ── 4-column grid — identical to home page ─
                       LayoutBuilder(
                         builder: (context, constraints) {
-                          // Exactly 4 columns on wide screens, 2 on mobile
-                          final cols = constraints.maxWidth > 600 ? 4 : 2;
+                          // Guard against infinite width on first web frame
+                          final w = constraints.maxWidth.isFinite
+                              ? constraints.maxWidth
+                              : 800.0; // safe fallback
+                          final cols = w > 600 ? 4 : 2;
                           final spacing = 12.0;
                           final cardWidth =
-                              (constraints.maxWidth - (cols - 1) * spacing) / cols;
+                              (w - (cols - 1) * spacing) / cols;
 
                           return GridView.builder(
                             shrinkWrap: true,
@@ -120,6 +123,7 @@ class FavoritesPage extends ConsumerWidget {
                           );
                         },
                       ),
+
                     ],
                   ),
                 ),

@@ -582,50 +582,48 @@ class _PropertyTabState extends ConsumerState<_PropertyTab> {
                           )),
                         )
                       else
-                      SliverToBoxAdapter(
-                          child: Center(
-                            child: ConstrainedBox(
-                              constraints: const BoxConstraints(maxWidth: 1100),
-                              child: Padding(
-                                padding: const EdgeInsets.fromLTRB(16, 0, 16, 100),
-                                child: LayoutBuilder(
-                                  builder: (context, constraints) {
-                                    // Always 4 columns; fall back to 2 on very narrow screens
-                                    final cols = constraints.maxWidth > 600 ? 4 : 2;
-                                    final cardWidth = (constraints.maxWidth - (cols - 1) * 12) / cols;
-                                    return GridView.builder(
-                                      shrinkWrap: true,
-                                      physics: const NeverScrollableScrollPhysics(),
-                                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                                        crossAxisCount: cols,
-                                        crossAxisSpacing: 12,
-                                        mainAxisSpacing: 12,
-                                        // aspect ratio keeps cards a good proportion
-                                        childAspectRatio: cardWidth / 380,
-                                      ),
-                                      itemCount: state.items.length + (state.hasMore ? 1 : 0),
-                                      itemBuilder: (ctx, i) {
-                                        if (i == state.items.length) {
-                                          return const Center(
-                                            child: Padding(
-                                              padding: EdgeInsets.all(16),
-                                              child: CircularProgressIndicator(color: AppColors.primary),
-                                            ),
-                                          );
-                                        }
-                                        return ListingCard(
-                                          listing: state.items[i],
-                                          isVerticalFeed: true,
-                                          margin: EdgeInsets.zero,
-                                        );
-                                      },
-                                    );
-                                  },
-                                ),
+                      SliverPadding(
+                        padding: const EdgeInsets.fromLTRB(16, 0, 16, 100),
+                        sliver: SliverLayoutBuilder(
+                          builder: (context, sliverConstraints) {
+                            // SliverLayoutBuilder always gives finite crossAxisExtent
+                            final screenWidth = sliverConstraints.crossAxisExtent;
+                            final effectiveWidth = screenWidth.isFinite
+                                ? screenWidth.clamp(0.0, 1100.0)
+                                : 800.0; // safe fallback
+                            final cols = effectiveWidth > 600 ? 4 : 2;
+                            final cardWidth = (effectiveWidth - (cols - 1) * 12) / cols;
+                            return SliverGrid(
+                              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                                crossAxisCount: cols,
+                                crossAxisSpacing: 12,
+                                mainAxisSpacing: 12,
+                                childAspectRatio: cardWidth / 380,
                               ),
-                            ),
-                          ),
+                              delegate: SliverChildBuilderDelegate(
+                                (ctx, i) {
+                                  if (i == state.items.length) {
+                                    return const Center(
+                                      child: Padding(
+                                        padding: EdgeInsets.all(16),
+                                        child: CircularProgressIndicator(
+                                            color: AppColors.primary),
+                                      ),
+                                    );
+                                  }
+                                  return ListingCard(
+                                    listing: state.items[i],
+                                    isVerticalFeed: true,
+                                    margin: EdgeInsets.zero,
+                                  );
+                                },
+                                childCount:
+                                    state.items.length + (state.hasMore ? 1 : 0),
+                              ),
+                            );
+                          },
                         ),
+                      ),
                     ],
                   ),
                 ),
