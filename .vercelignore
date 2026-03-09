@@ -1,5 +1,4 @@
-# Ignore large Flutter/Mobile specific directories for the backend bundle
-flutter/
+# Ignore large mobile/desktop build folders (NOT assets)
 android/
 ios/
 windows/
@@ -7,11 +6,6 @@ linux/
 macos/
 .dart_tool/
 build/
-assets/
 test/
 .git/
-*.png
-*.jpg
-*.jpeg
-*.svg
-*.lottie
+# DO NOT ignore assets/ or images, they are needed for the Flutter build!
