@@ -1,0 +1,17 @@
+# Ignore large Flutter/Mobile specific directories for the backend bundle
+flutter/
+android/
+ios/
+windows/
+linux/
+macos/
+.dart_tool/
+build/
+assets/
+test/
+.git/
+*.png
+*.jpg
+*.jpeg
+*.svg
+*.lottie
